@@ -21,6 +21,18 @@
           config.allowUnfree = true;
         };
 
+        clangdWrapped = pkgs.writeShellScriptBin "clangd" ''
+          export GCC_DIR="${pkgs.gcc.cc}"
+          export GCC_VER="${pkgs.gcc.version}"
+
+          export CPATH="$GCC_DIR/include/c++/$GCC_VER:$GCC_DIR/include/c++/$GCC_VER/${pkgs.stdenv.hostPlatform.config}:${pkgs.glibc.dev}/include:${pkgs.linuxHeaders}/include:$CPATH"
+          export CPLUS_INCLUDE_PATH="$GCC_DIR/include/c++/$GCC_VER:$GCC_DIR/include/c++/$GCC_VER/${pkgs.stdenv.hostPlatform.config}:${pkgs.glibc.dev}/include:${pkgs.linuxHeaders}/include:$CPLUS_INCLUDE_PATH"
+
+          exec ${pkgs.llvmPackages.clang-unwrapped}/bin/clangd \
+            --query-driver=${pkgs.gcc}/bin/g++ \
+            "$@"
+        '';
+
         tools = [
           pkgs.gcc
 
@@ -34,21 +46,13 @@
 
           # Dev tools
           pkgs.gdb
-          pkgs.clang-tools
+          clangdWrapped
           pkgs.valgrind
         ];
       in
       {
         devShells.default = pkgs.mkShell {
           buildInputs = tools;
-
-          shellHook = ''
-            echo "GCC + CUDA Environment Active."
-            # export CUDA_PATH=${pkgs.cudatoolkit}
-            # export EXTRA_LDFLAGS="-L/lib -L${pkgs.linuxPackages.nvidia_x11}/lib"
-            export EXTRA_CCFLAGS="-I/usr/include"
-            # export LD_LIBRARY_PATH=/run/opengl-driver/lib:/run/opengl-driver-32/lib:${pkgs.lib.makeLibraryPath tools}:$LD_LIBRARY_PATH
-          '';
         };
 
         packages.tools = pkgs.buildEnv {
