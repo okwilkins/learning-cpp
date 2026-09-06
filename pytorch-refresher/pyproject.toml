@@ -1,0 +1,15 @@
+[project]
+name = "pytorch-referesher"
+version = "0.1.0"
+description = "A referesher to Pytorch"
+authors = [
+    { name = "Oliver Wilkins", email = "okwilkins@googlemail.com" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "torch>=2.0.0",
+    "notebook>=7.0.0",
+]
+
+[dependency-groups]
+dev = ["ruff", "ty"]
